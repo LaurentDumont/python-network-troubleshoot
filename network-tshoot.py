@@ -1,18 +1,24 @@
-#Standard Libraries imports
-import json
-import curses
-import threading
-import time
+#!/usr/bin/python3
 
-#Third party libraries
+import curses
+import time
+import threading
 import pingparsing
+import json
 import requests
 
 
-class StartPing(object):
-    def __init__(self):
+class Ping(threading.Thread):
+    """ Ping curses class. Ping a target and return some data."""
+
+    def __init__(self, stdscr):
         self.target = 'google.com'
         self.ping_count = 2
+        super(Ping, self).__init__()
+        self._target=self.ping
+        self.daemon = True
+        self.stdscr = stdscr
+        self.start()
 
     def ping(self):
         while True: 
@@ -30,14 +36,18 @@ class StartPing(object):
             ping_win_section.addstr('Round Trip Time Average is : {} \n'.format(str(ping_result_json['rtt_avg'])))
             ping_win_section.refresh()
             ping_win_section.clear()
-            time.sleep(5)
+            time.sleep(2)
 
+class PublicAddress(threading.Thread):
 
-class GetPublicAddress(object):
-    def __init__(self):
-        self.message = 'Message'
+    def __init__(self, stdscr):
+        super(PublicAddress, self).__init__()
+        self._target=self.GetPublicAddress
+        self.daemon = True
+        self.stdscr = stdscr
+        self.start()
 
-    def get_external_ip_address(self):
+    def GetPublicAddress(self):
         while True:
             begin_x = 50; begin_y = 0
             height = 5; width = 40
@@ -52,22 +62,18 @@ class GetPublicAddress(object):
             time.sleep(10)
 
 
+def run(stdscr):
 
-def gui(stdscr):
-    stdscr.addstr('Dreamhack Monitoring Tool \n')
-    ping_thread = threading.Thread(target=StartPing.ping)
-    #public_ip_thread = threading.Thread(target=GetPublicAddress.get_external_ip_address)
-    ping_thread.setDaemon(True)
-    #public_ip_thread.setDaemon(True)
-    ping_thread.start()
-    #public_ip_thread.start()
-    stdscr.refresh()
-    stdscr.clear()
-    
+    ping = Ping(stdscr)
+    public_address = PublicAddress(stdscr)
 
-def main():
-    curses.wrapper(gui)
+    # End with any key
+
+    while 1:
+        event = stdscr.getch()
+        break
 
 
-if __name__ == "__main__":
-    main()
+if __name__=="__main__":
+    stdscr = curses.initscr()
+    curses.wrapper(run)

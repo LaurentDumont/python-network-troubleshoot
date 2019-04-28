@@ -5,13 +5,13 @@ import time
 import threading
 import pingparsing
 import json
+import requests
 
 
 class Ping(threading.Thread):
-    """ Clock curses string class. Updates every second. Easy to install """
+    """ Ping curses class. Ping a target and return some data."""
 
-    def __init__(self, stdscr, show_seconds=True):
-        """ Create the clock """
+    def __init__(self, stdscr):
         self.target = 'google.com'
         self.ping_count = 2
         super(Ping, self).__init__()
@@ -21,7 +21,6 @@ class Ping(threading.Thread):
         self.start()
 
     def ping(self):
-        """ If seconds are showing, update the clock each second """
         while True: 
             ping_parser = pingparsing.PingParsing()
             transmitter = pingparsing.PingTransmitter()
@@ -37,13 +36,36 @@ class Ping(threading.Thread):
             ping_win_section.addstr('Round Trip Time Average is : {} \n'.format(str(ping_result_json['rtt_avg'])))
             ping_win_section.refresh()
             ping_win_section.clear()
-            time.sleep(5)
+            time.sleep(2)
 
+class PublicAddress(threading.Thread):
+
+    def __init__(self, stdscr):
+        super(PublicAddress, self).__init__()
+        self._target=self.GetPublicAddress
+        self.daemon = True
+        self.stdscr = stdscr
+        self.start()
+
+    def GetPublicAddress(self):
+        while True:
+            begin_x = 50; begin_y = 0
+            height = 5; width = 40
+            public_ip_data = requests.get('https://api.ipify.org?format=json')
+            public_ip_json = json.loads(public_ip_data.text)
+            public_ip_only = public_ip_json['ip']
+            public_ip_win_section = curses.newwin(height, width, begin_y, begin_x)
+            public_ip_win_section.addstr('Getting public IP address : \n')
+            public_ip_win_section.addstr(public_ip_only)
+            public_ip_win_section.refresh()
+            public_ip_win_section.clear()
+            time.sleep(10)
 
 
 def run(stdscr):
-    
+
     ping = Ping(stdscr)
+    public_address = PublicAddress(stdscr)
 
     # End with any key
 
