@@ -29,11 +29,13 @@ class Ping(threading.Thread):
             ping_result = transmitter.ping()
             ping_result_json = json.loads(json.dumps(ping_parser.parse(ping_result).as_dict()))
             begin_x = 0; begin_y = 0
-            height = 5; width = 40
+            height = 10; width = 40
             ping_win_section = curses.newwin(height, width, begin_y, begin_x)
-            ping_win_section.addstr('Ping statistics : \n')
-            ping_win_section.addstr('Round Trip Time Average is : {} \n'.format(str(ping_result_json['rtt_avg'])))
-            ping_win_section.addstr('Round Trip Time Average is : {} \n'.format(str(ping_result_json['rtt_avg'])))
+            ping_win_section.addstr('Ping statistics for {}: \n'.format(self.target))
+            ping_win_section.addstr('Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
+            ping_win_section.addstr('Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
+            ping_win_section.addstr('Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
+            ping_win_section.addstr('Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
             ping_win_section.refresh()
             ping_win_section.clear()
             time.sleep(2)
@@ -64,14 +66,19 @@ class PublicAddress(threading.Thread):
 
 def run(stdscr):
 
-    ping = Ping(stdscr)
-    public_address = PublicAddress(stdscr)
+    curses.curs_set(0)
+    Ping(stdscr)
+    PublicAddress(stdscr)
 
     # End with any key
 
-    while 1:
-        event = stdscr.getch()
-        break
+    while True:
+        key_press = stdscr.getch()
+        if key_press != curses.KEY_RESIZE:
+            curses.endwin()
+            break
+        else:
+            continue
 
 
 if __name__=="__main__":
