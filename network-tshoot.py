@@ -93,7 +93,7 @@ class PublicAddress(threading.Thread):
                 public_ip_data = requests.get('https://api.ipify.org?format=json')
                 public_ip_json = json.loads(public_ip_data.text)
                 public_ip_only = public_ip_json['ip']
-                public_ip_win_section.addstr('Getting public IP address : \n', curses.A_STANDOUT)
+                public_ip_win_section.addstr('Public IP address: \n', curses.A_STANDOUT)
                 public_ip_win_section.addstr(public_ip_only)
                 public_ip_win_section.refresh()
                 public_ip_win_section.clear()
