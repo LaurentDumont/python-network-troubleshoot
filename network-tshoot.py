@@ -8,7 +8,7 @@ import requests
 import socket
 
 
-""" This party libraries """
+""" Third party libraries """
 
 import pingparsing
 
