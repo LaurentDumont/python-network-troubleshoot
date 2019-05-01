@@ -7,37 +7,9 @@ import json
 import requests
 import socket
 
-
 """ Third party libraries """
 
 import pingparsing
-
-
-class IpAddress(threading.Thread):
-    """ Get the current IP address of the device """
-    def __init__ (self):
-        super(IpAddress, self).__init__()
-        self._target=self.GetIpAddress
-        self.daemon = True
-        self.start()
-
-
-    def GetIpAddress(self):
-        begin_x = 110; begin_y = 0
-        height = 5; width = 50
-        internal_ip_window = curses.newwin(height, width, begin_y, begin_x)
-        while True:
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("8.8.8.8", 80))
-                current_internal_ip  = s.getsockname()[0]
-                internal_ip_window.addstr('Internal IP :\n', curses.A_STANDOUT)
-                internal_ip_window.addstr('{}'.format(current_internal_ip))
-                internal_ip_window.refresh()
-                internal_ip_window.clear()
-                time.sleep(10)
-            except:
-                continue
 
 
 class Ping(threading.Thread):
@@ -75,38 +47,41 @@ class Ping(threading.Thread):
                 continue
 
 
-class PublicAddress(threading.Thread):
-    """ Get the public address of the device where the script is running. """
-
-    def __init__(self):
-        super(PublicAddress, self).__init__()
-        self._target=self.GetPublicAddress
+class IpAddress(threading.Thread):
+    """ Get the current IP address of the device """
+    def __init__ (self):
+        super(IpAddress, self).__init__()
+        self._target=self.GetIpAddress
         self.daemon = True
         self.start()
 
-    def GetPublicAddress(self):
+    def GetIpAddress(self):
         begin_x = 50; begin_y = 0
         height = 5; width = 50
-        public_ip_win_section = curses.newwin(height, width, begin_y, begin_x)
+        ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(("8.8.8.8", 80))
+                current_internal_ip  = s.getsockname()[0]
+                ip_window.addstr('Internal IP :\n', curses.A_STANDOUT)
+                ip_window.addstr('{}\n'.format(current_internal_ip))
                 public_ip_data = requests.get('https://api.ipify.org?format=json')
                 public_ip_json = json.loads(public_ip_data.text)
                 public_ip_only = public_ip_json['ip']
-                public_ip_win_section.addstr('Public IP address: \n', curses.A_STANDOUT)
-                public_ip_win_section.addstr(public_ip_only)
-                public_ip_win_section.refresh()
-                public_ip_win_section.clear()
+                ip_window.addstr('Public IP address: \n', curses.A_STANDOUT)
+                ip_window.addstr(public_ip_only)
+                ip_window.refresh()
+                ip_window.clear()
                 time.sleep(10)
             except:
-               continue
+                continue
 
 
 def run(stdscr):
 
     curses.curs_set(0)
     Ping()
-    PublicAddress()
     IpAddress()
 
     # End with any key
