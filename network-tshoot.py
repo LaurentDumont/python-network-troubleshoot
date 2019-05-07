@@ -6,6 +6,7 @@ import threading
 import json
 import requests
 import socket
+import struct
 
 """ Third party libraries """
 
@@ -57,20 +58,31 @@ class IpAddress(threading.Thread):
 
     def GetIpAddress(self):
         begin_x = 50; begin_y = 0
-        height = 5; width = 50
+        height = 10; width = 50
         ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
+                #Internal IP Address
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 s.connect(("8.8.8.8", 80))
                 current_internal_ip  = s.getsockname()[0]
                 ip_window.addstr('Internal IP :\n', curses.A_STANDOUT)
                 ip_window.addstr('{}\n'.format(current_internal_ip))
+                #External IP Address
                 public_ip_data = requests.get('https://api.ipify.org?format=json')
                 public_ip_json = json.loads(public_ip_data.text)
                 public_ip_only = public_ip_json['ip']
                 ip_window.addstr('Public IP address: \n', curses.A_STANDOUT)
-                ip_window.addstr(public_ip_only)
+                ip_window.addstr('{}\n'.format(public_ip_only))
+                #Default gateway
+                with open("/proc/net/route") as fh:
+                    for line in fh:
+                        fields = line.strip().split()
+                        if fields[1] != '00000000' or not int(fields[3], 16) & 2:
+                            continue
+                        def_gw = socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+                ip_window.addstr('Default gateway: \n', curses.A_STANDOUT)
+                ip_window.addstr('{}\n'.format(def_gw))
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
