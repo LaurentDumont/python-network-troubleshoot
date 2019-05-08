@@ -56,9 +56,18 @@ class IpAddress(threading.Thread):
         self.daemon = True
         self.start()
 
+    def GetDnsServers(self):
+        nameservers = []
+        with open("/etc/resolv.conf") as dns_config_file:
+            for line in dns_config_file:
+                if "nameserver" in line:
+                    dns_server = line.split()
+                    nameservers.append(dns_server[1])
+        return(nameservers)
+
     def GetIpAddress(self):
         begin_x = 50; begin_y = 0
-        height = 10; width = 50
+        height = 15; width = 40
         ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -83,6 +92,10 @@ class IpAddress(threading.Thread):
                         def_gw = socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
                 ip_window.addstr('Default gateway: \n', curses.A_STANDOUT)
                 ip_window.addstr('{}\n'.format(def_gw))
+                ip_window.addstr('DNS Servers: \n', curses.A_STANDOUT)
+                dns_servers = IpAddress.GetDnsServers(self)
+                for server in dns_servers:
+                    ip_window.addstr('{}\n'.format(server))
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
