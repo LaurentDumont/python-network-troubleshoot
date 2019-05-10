@@ -7,6 +7,7 @@ import json
 import requests
 import socket
 import struct
+from dhcp import get_dhcp_offer, parse_dhcp_server_ip, parse_lease_time, parse_dhcp_domain_name
 
 """ Third party libraries """
 
@@ -67,7 +68,7 @@ class IpAddress(threading.Thread):
 
     def GetIpAddress(self):
         begin_x = 50; begin_y = 0
-        height = 15; width = 40
+        height = 20; width = 50
         ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -96,6 +97,16 @@ class IpAddress(threading.Thread):
                 dns_servers = IpAddress.GetDnsServers(self)
                 for server in dns_servers:
                     ip_window.addstr('{}\n'.format(server))
+                dhcp_offer = get_dhcp_offer()
+                lease_time = parse_lease_time(dhcp_offer)
+                dhcp_server_ip = parse_dhcp_server_ip(dhcp_offer)
+                dhcp_domain_name = parse_dhcp_domain_name(dhcp_offer)
+                ip_window.addstr('DHCP lease time: \n', curses.A_STANDOUT)
+                ip_window.addstr(str(lease_time) + ' Minutes\n')
+                ip_window.addstr('DHCP Server IP: \n', curses.A_STANDOUT)
+                ip_window.addstr(str(dhcp_server_ip) + '\n')
+                ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
+                ip_window.addstr(str(dhcp_domain_name) + '\n')
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
