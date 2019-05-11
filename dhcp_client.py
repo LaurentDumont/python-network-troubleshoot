@@ -1,4 +1,4 @@
-from scapy.all import get_if_hwaddr, conf, Ether, IP, UDP, TCP, BOOTP, DHCP, RandInt, srp1 
+from scapy.all import get_if_hwaddr, conf, Ether, IP, UDP, TCP, BOOTP, DHCP, RandInt, srp1
 
 
 def get_dhcp_offer():

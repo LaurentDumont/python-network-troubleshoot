@@ -7,7 +7,7 @@ import json
 import requests
 import socket
 import struct
-from dhcp import get_dhcp_offer, parse_dhcp_server_ip, parse_lease_time, parse_dhcp_domain_name
+from dhcp_client import get_dhcp_offer, parse_dhcp_server_ip, parse_lease_time, parse_dhcp_domain_name
 
 """ Third party libraries """
 
