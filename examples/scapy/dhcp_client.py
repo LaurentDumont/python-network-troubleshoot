@@ -3,7 +3,7 @@ from scapy.all import get_if_hwaddr, conf, Ether, IP, UDP, TCP, BOOTP, DHCP, Ran
 conf.checkIPaddr=False
 
 # configuration
-interface = 'wlp3s0'
+interface = 'eno1'
 localmac = get_if_hwaddr(interface)
 
 # craft DHCP DISCOVER

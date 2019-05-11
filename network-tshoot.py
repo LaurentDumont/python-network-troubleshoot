@@ -105,8 +105,11 @@ class IpAddress(threading.Thread):
                 ip_window.addstr(str(lease_time) + ' Minutes\n')
                 ip_window.addstr('DHCP Server IP: \n', curses.A_STANDOUT)
                 ip_window.addstr(str(dhcp_server_ip) + '\n')
-                ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
-                ip_window.addstr(str(dhcp_domain_name) + '\n')
+                if dhcp_domain_name != None:
+                  ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
+                  ip_window.addstr(str(dhcp_domain_name) + '\n')
+                else:
+                  ip_window.addstr('No Domain name from DHCP \n', curses.A_STANDOUT)
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
