@@ -7,7 +7,8 @@ import json
 import requests
 import socket
 import struct
-from dhcp_client import get_dhcp_offer, parse_dhcp_server_ip, parse_lease_time, parse_dhcp_domain_name
+from dhcp_client import *
+from cdp_client import *
 
 """ Third party libraries """
 
@@ -27,7 +28,7 @@ class Ping(threading.Thread):
 
     def ping(self):
         begin_x = 0; begin_y = 0
-        height = 10; width = 50
+        height =7; width = 50
         ping_win_section = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -117,11 +118,47 @@ class IpAddress(threading.Thread):
                 continue
 
 
+class CdpInformation(threading.Thread):
+    """ Get CDP information from remote Cisco equipment. """
+    def __init__ (self):
+        super(CdpInformation, self).__init__()
+        self._target=self.GetCDPInformation
+        self.daemon = True
+        self.start()
+
+
+    def GetCDPInformation(self):
+        begin_x = 0; begin_y = 7
+        height = 20; width = 20
+        cdp_window = curses.newwin(height, width, begin_y, begin_x)
+        while True:
+            try:
+                cdp_window.addstr('CDP Information: \n', curses.A_STANDOUT)
+                cdp_packet = get_cdp_packet()
+                cdp_device_name = get_cdp_device_name(cdp_packet)
+                cdp_switchport = get_cdp_port_name(cdp_packet)
+                #cdp_platform = get_cdp_platform_version(cdp_packet)
+                #cdp_platform_software = get_cdp_software_version(cdp_packet)
+                #cdp_duplex = get_cdp_duplex(cdp_packet)
+                #vlan = get_cdp_vlan(cdp_packet)
+                #management_address = get_cdp_management_address(cdp_packet)
+                cdp_window.addstr('Device Name: \n', curses.A_STANDOUT)
+                cdp_window.addstr(cdp_device_name + '\n')
+                cdp_window.addstr('Switchport: \n', curses.A_STANDOUT)
+                cdp_window.addstr(cdp_switchport + '\n')
+                cdp_window.refresh()
+                cdp_window.clear()
+                time.sleep(10)
+            except:
+                continue
+
+
 def run(stdscr):
 
     curses.curs_set(0)
     Ping()
     IpAddress()
+    CdpInformation()
 
     # End with any key
 
