@@ -28,7 +28,7 @@ class Ping(threading.Thread):
 
     def ping(self):
         begin_x = 0; begin_y = 0
-        height =7; width = 50
+        height = 7; width = 50
         ping_win_section = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -38,11 +38,12 @@ class Ping(threading.Thread):
                 transmitter.count = self.ping_count
                 ping_result = transmitter.ping()
                 ping_result_json = json.loads(json.dumps(ping_parser.parse(ping_result).as_dict()))
-                ping_win_section.addstr('Ping statistics for {}: \n'.format(self.target), curses.A_STANDOUT)
-                ping_win_section.addstr('Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
-                ping_win_section.addstr('Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
-                ping_win_section.addstr('Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
-                ping_win_section.addstr('Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
+                ping_win_section.addstr(1, 1, 'Ping statistics for {}: \n'.format(self.target), curses.A_STANDOUT)
+                ping_win_section.addstr(2, 1, 'Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
+                ping_win_section.addstr(3, 1, 'Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
+                ping_win_section.addstr(4, 1, 'Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
+                ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
+                ping_win_section.box()
                 ping_win_section.refresh()
                 ping_win_section.clear()
                 time.sleep(2)
@@ -157,8 +158,8 @@ def run(stdscr):
 
     curses.curs_set(0)
     Ping()
-    IpAddress()
-    CdpInformation()
+    #IpAddress()
+    #CdpInformation()
 
     # End with any key
 
