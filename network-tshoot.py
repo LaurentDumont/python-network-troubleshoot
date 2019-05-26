@@ -130,7 +130,7 @@ class CdpInformation(threading.Thread):
 
     def GetCDPInformation(self):
         begin_x = 0; begin_y = 7
-        height = 20; width = 20
+        height = 30; width = 25
         cdp_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -138,15 +138,25 @@ class CdpInformation(threading.Thread):
                 cdp_packet = get_cdp_packet()
                 cdp_device_name = get_cdp_device_name(cdp_packet)
                 cdp_switchport = get_cdp_port_name(cdp_packet)
-                #cdp_platform = get_cdp_platform_version(cdp_packet)
-                #cdp_platform_software = get_cdp_software_version(cdp_packet)
-                #cdp_duplex = get_cdp_duplex(cdp_packet)
-                #vlan = get_cdp_vlan(cdp_packet)
-                #management_address = get_cdp_management_address(cdp_packet)
+                cdp_platform = get_cdp_platform_version(cdp_packet)
+                cdp_platform_software = get_cdp_software_version(cdp_packet)
+                cdp_duplex = get_cdp_duplex(cdp_packet)
+                cdp_vlan = get_cdp_vlan(cdp_packet)
+                cdp_management_address = get_cdp_management_address(cdp_packet)
                 cdp_window.addstr('Device Name: \n', curses.A_STANDOUT)
                 cdp_window.addstr(cdp_device_name + '\n')
                 cdp_window.addstr('Switchport: \n', curses.A_STANDOUT)
                 cdp_window.addstr(cdp_switchport + '\n')
+                cdp_window.addstr('Switch model: \n', curses.A_STANDOUT)
+                cdp_window.addstr(cdp_platform + '\n')
+                cdp_window.addstr('Switch version: \n', curses.A_STANDOUT)
+                cdp_window.addstr(cdp_platform_software + '\n')
+                cdp_window.addstr('Switchport duplex: \n', curses.A_STANDOUT)
+                cdp_window.addstr(cdp_duplex+ '\n')
+                cdp_window.addstr('Switchport VLAN: \n', curses.A_STANDOUT)
+                cdp_window.addstr(str(cdp_vlan)+ '\n')
+                cdp_window.addstr('Switch MGMT IP: \n', curses.A_STANDOUT)
+                cdp_window.addstr(cdp_management_address+ '\n')
                 cdp_window.refresh()
                 cdp_window.clear()
                 time.sleep(10)
@@ -158,8 +168,8 @@ def run(stdscr):
 
     curses.curs_set(0)
     Ping()
-    #IpAddress()
-    #CdpInformation()
+    IpAddress()
+    CdpInformation()
 
     # End with any key
 

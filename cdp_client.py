@@ -26,7 +26,7 @@ def get_cdp_software_version(cdp_packet):
     software_version_long = cdp_packet[0]["CDPMsgSoftwareVersion"].val.decode()
     software_version_split_list = software_version_long.split()
     software_version_number_with_comma = software_version_split_list[7]
-    software_version_only = software_version_number_with_comma.split(',', '')
+    software_version_only = software_version_number_with_comma.replace(',', '')
     return software_version_only
 
 
