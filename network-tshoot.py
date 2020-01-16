@@ -9,6 +9,7 @@ import socket
 import struct
 from dhcp_client import *
 from cdp_client import *
+import argparse
 
 """ Third party libraries """
 
@@ -53,10 +54,11 @@ class Ping(threading.Thread):
 
 class IpAddress(threading.Thread):
     """ Get the current IP address of the device """
-    def __init__ (self):
+    def __init__ (self, interface_name):
         super(IpAddress, self).__init__()
         self._target=self.GetIpAddress
         self.daemon = True
+        self.interface_name = interface_name
         self.start()
 
     def GetDnsServers(self):
@@ -99,7 +101,7 @@ class IpAddress(threading.Thread):
                 dns_servers = IpAddress.GetDnsServers(self)
                 for server in dns_servers:
                     ip_window.addstr('{}\n'.format(server))
-                dhcp_offer = get_dhcp_offer()
+                dhcp_offer = get_dhcp_offer(self.interface_name)
                 lease_time = parse_lease_time(dhcp_offer)
                 dhcp_server_ip = parse_dhcp_server_ip(dhcp_offer)
                 dhcp_domain_name = parse_dhcp_domain_name(dhcp_offer)
@@ -121,10 +123,11 @@ class IpAddress(threading.Thread):
 
 class CdpInformation(threading.Thread):
     """ Get CDP information from remote Cisco equipment. """
-    def __init__ (self):
+    def __init__ (self, interface_name):
         super(CdpInformation, self).__init__()
         self._target=self.GetCDPInformation
         self.daemon = True
+        self.interface_name = interface_name
         self.start()
 
 
@@ -135,7 +138,7 @@ class CdpInformation(threading.Thread):
         while True:
             try:
                 cdp_window.addstr('CDP Information: \n', curses.A_STANDOUT)
-                cdp_packet = get_cdp_packet()
+                cdp_packet = get_cdp_packet(self.interface_name)
                 cdp_device_name = get_cdp_device_name(cdp_packet)
                 cdp_switchport = get_cdp_port_name(cdp_packet)
                 cdp_platform = get_cdp_platform_version(cdp_packet)
@@ -165,11 +168,14 @@ class CdpInformation(threading.Thread):
 
 
 def run(stdscr):
-
     curses.curs_set(0)
+    parser = argparse.ArgumentParser(description='Network troubleshooting script.')
+    parser.add_argument('interface_name', metavar='interface_name', type=str, help='Interface name for DHCP and CDP packet generators.')
+    args = parser.parse_args()
+    interface_name = args.interface_name
     Ping()
-    IpAddress()
-    CdpInformation()
+    IpAddress(interface_name)
+    CdpInformation(interface_name)
 
     # End with any key
 
@@ -184,5 +190,5 @@ def run(stdscr):
 
 if __name__ == "__main__":
     stdscr = curses.initscr()
-    curses.wrapper(run)
+    curses.wrapper(run) 
     curses.endwin()

@@ -2,8 +2,8 @@ from scapy.all import *
 load_contrib('cdp')
 
 
-def get_cdp_packet():
-    cdp_packet = sniff(iface='eno1', count=1, filter='ether dst 01:00:0c:cc:cc:cc', store=1)
+def get_cdp_packet(interface_name):
+    cdp_packet = sniff(iface=interface_name, count=1, filter='ether dst 01:00:0c:cc:cc:cc', store=1)
     return cdp_packet
 
 
