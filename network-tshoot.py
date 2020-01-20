@@ -7,8 +7,9 @@ import json
 import requests
 import socket
 import struct
-from dhcp_client import *
-from cdp_client import *
+from libraries.dhcp_client import *
+from libraries.cdp_client import *
+from libraries.network_interface_client import *
 import argparse
 
 """ Third party libraries """
@@ -21,6 +22,8 @@ class Ping(threading.Thread):
 
     def __init__(self):
         self.target = 'google.com'
+        self.ok_message = 'AVG PING IS OK'
+        self.notok_message = 'AVG PING IS NOT OK'
         self.ping_count = 2
         super(Ping, self).__init__()
         self._target=self.ping
@@ -29,7 +32,7 @@ class Ping(threading.Thread):
 
     def ping(self):
         begin_x = 0; begin_y = 0
-        height = 7; width = 50
+        height = 8; width = 50
         ping_win_section = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -44,6 +47,10 @@ class Ping(threading.Thread):
                 ping_win_section.addstr(3, 1, 'Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
                 ping_win_section.addstr(4, 1, 'Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
                 ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
+                if ping_result_json['rtt_avg'] < 60:
+                  ping_win_section.addstr(6, 1, self.ok_message, curses.color_pair(2))
+                else:
+                  ping_win_section.addstr(6, 1, self.notok_message, curses.color_pair(1))
                 ping_win_section.box()
                 ping_win_section.refresh()
                 ping_win_section.clear()
@@ -95,7 +102,6 @@ class IpAddress(threading.Thread):
                         if fields[1] != '00000000' or not int(fields[3], 16) & 2:
                             continue
                         def_gw = socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
-                ip_window.addstr('Default gateway: \n', curses.A_STANDOUT)
                 ip_window.addstr('{}\n'.format(def_gw))
                 ip_window.addstr('DNS Servers: \n', curses.A_STANDOUT)
                 dns_servers = IpAddress.GetDnsServers(self)
@@ -114,6 +120,10 @@ class IpAddress(threading.Thread):
                   ip_window.addstr(str(dhcp_domain_name) + '\n')
                 else:
                   ip_window.addstr('No Domain name from DHCP \n', curses.A_STANDOUT)
+                interface_speed = get_interface_speed(self.interface_name)
+                ip_window.addstr('Local Interface speed: \n', curses.A_STANDOUT)
+                if interface_speed == 'NOT FOUND':
+                  ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
@@ -130,11 +140,16 @@ class CdpInformation(threading.Thread):
         self.interface_name = interface_name
         self.start()
 
+    def get_color_highlight(self, string):
+        if string == 'NOT FOUND':
+          return 1
+        return 3
 
     def GetCDPInformation(self):
-        begin_x = 0; begin_y = 7
+        begin_x = 0; begin_y = 8
         height = 30; width = 25
         cdp_window = curses.newwin(height, width, begin_y, begin_x)
+        cdp_packet = get_cdp_packet(self.interface_name)
         while True:
             try:
                 cdp_window.addstr('CDP Information: \n', curses.A_STANDOUT)
@@ -147,19 +162,19 @@ class CdpInformation(threading.Thread):
                 cdp_vlan = get_cdp_vlan(cdp_packet)
                 cdp_management_address = get_cdp_management_address(cdp_packet)
                 cdp_window.addstr('Device Name: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_device_name + '\n')
+                cdp_window.addstr(cdp_device_name + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_device_name)))
                 cdp_window.addstr('Switchport: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_switchport + '\n')
+                cdp_window.addstr(cdp_switchport + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_switchport)))
                 cdp_window.addstr('Switch model: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_platform + '\n')
+                cdp_window.addstr(cdp_platform + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_platform)))
                 cdp_window.addstr('Switch version: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_platform_software + '\n')
+                cdp_window.addstr(cdp_platform_software + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_platform_software)))
                 cdp_window.addstr('Switchport duplex: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_duplex+ '\n')
+                cdp_window.addstr(cdp_duplex+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_duplex)))
                 cdp_window.addstr('Switchport VLAN: \n', curses.A_STANDOUT)
-                cdp_window.addstr(str(cdp_vlan)+ '\n')
+                cdp_window.addstr(str(cdp_vlan)+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_vlan)))
                 cdp_window.addstr('Switch MGMT IP: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_management_address+ '\n')
+                cdp_window.addstr(cdp_management_address+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_management_address)))
                 cdp_window.refresh()
                 cdp_window.clear()
                 time.sleep(10)
@@ -172,6 +187,9 @@ def run(stdscr):
     parser = argparse.ArgumentParser(description='Network troubleshooting script.')
     parser.add_argument('interface_name', metavar='interface_name', type=str, help='Interface name for DHCP and CDP packet generators.')
     args = parser.parse_args()
+    curses.init_pair(1, curses.COLOR_WHITE, curses.COLOR_RED)
+    curses.init_pair(2, curses.COLOR_WHITE, curses.COLOR_MAGENTA)
+    curses.init_pair(3, curses.COLOR_WHITE, curses.COLOR_BLACK)
     interface_name = args.interface_name
     Ping()
     IpAddress(interface_name)
@@ -190,5 +208,5 @@ def run(stdscr):
 
 if __name__ == "__main__":
     stdscr = curses.initscr()
-    curses.wrapper(run) 
+    curses.wrapper(run)
     curses.endwin()
