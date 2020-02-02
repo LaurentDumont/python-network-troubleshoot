@@ -10,6 +10,7 @@ import struct
 from libraries.dhcp_client import *
 from libraries.cdp_client import *
 from libraries.network_interface_client import *
+from libraries.iperf import *
 import argparse
 
 """ Third party libraries """
@@ -21,7 +22,7 @@ class Ping(threading.Thread):
     """ Ping a target and return some statistics. """
 
     def __init__(self):
-        self.target = 'google.com'
+        self.target = 'perf.laurentdumont.ca'
         self.ok_message = 'AVG PING IS OK'
         self.notok_message = 'AVG PING IS NOT OK'
         self.ping_count = 2
@@ -95,6 +96,7 @@ class IpAddress(threading.Thread):
                 public_ip_only = public_ip_json['ip']
                 ip_window.addstr('Public IP address: \n', curses.A_STANDOUT)
                 ip_window.addstr('{}\n'.format(public_ip_only))
+                ip_window.addstr('Default Gateway: \n', curses.A_STANDOUT)
                 #Default gateway
                 with open("/proc/net/route") as fh:
                     for line in fh:
@@ -182,6 +184,32 @@ class CdpInformation(threading.Thread):
                 continue
 
 
+class Iperf(threading.Thread):
+    """ Run a forward and reverse Iperf test towards a target """
+
+    def __init__(self):
+        super(Iperf, self).__init__()
+        self._target=self.iperf
+        self.daemon = True
+        self.start()
+
+    def iperf(self):
+        begin_x = 49; begin_y = 19
+        height = 8; width = 100
+        iperf_win_section = curses.newwin(height, width, begin_y, begin_x)
+        while True:
+            try:
+                time.sleep(60)
+                iperf_win_section.addstr('Download speed \n', curses.A_STANDOUT)
+                download_speed = download_test()
+                iperf_win_section.addstr(str(download_speed) + ' Mbps \n')
+                iperf_win_section.refresh()
+                iperf_win_section.clear()
+            except: 
+                continue
+
+
+
 def run(stdscr):
     curses.curs_set(0)
     parser = argparse.ArgumentParser(description='Network troubleshooting script.')
@@ -194,6 +222,7 @@ def run(stdscr):
     Ping()
     IpAddress(interface_name)
     CdpInformation(interface_name)
+    Iperf()
 
     # End with any key
 

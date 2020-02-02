@@ -7,7 +7,8 @@ mbstrdecoder==0.8.0
 netifaces==0.10.9
 pingparsing==0.16.0
 pip==18.1
-pkg-resources==0.0.0
+#Doesnt seem to work 100% of the time...
+#pkg-resources==0.0.0
 pyparsing==2.4.0
 requests==2.21.0
 #Workaround for License issue.
@@ -20,3 +21,4 @@ typepy==0.5.0
 urllib3==1.24.3
 urwid==2.0.1
 wheel==0.33.1
+iperf3==0.1.11
