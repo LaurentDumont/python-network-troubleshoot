@@ -33,7 +33,7 @@ class Ping(threading.Thread):
 
     def ping(self):
         begin_x = 0; begin_y = 0
-        height = 8; width = 50
+        height = 8; width = 40
         ping_win_section = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -43,7 +43,7 @@ class Ping(threading.Thread):
                 transmitter.count = self.ping_count
                 ping_result = transmitter.ping()
                 ping_result_json = json.loads(json.dumps(ping_parser.parse(ping_result).as_dict()))
-                ping_win_section.addstr(1, 1, 'Ping statistics for {}: \n'.format(self.target), curses.A_STANDOUT)
+                ping_win_section.addstr(1, 1, 'Ping : {}: \n'.format(self.target), curses.A_STANDOUT)
                 ping_win_section.addstr(2, 1, 'Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
                 ping_win_section.addstr(3, 1, 'Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
                 ping_win_section.addstr(4, 1, 'Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
@@ -52,7 +52,6 @@ class Ping(threading.Thread):
                   ping_win_section.addstr(6, 1, self.ok_message, curses.color_pair(2))
                 else:
                   ping_win_section.addstr(6, 1, self.notok_message, curses.color_pair(1))
-                ping_win_section.box()
                 ping_win_section.refresh()
                 ping_win_section.clear()
                 time.sleep(2)
@@ -79,8 +78,8 @@ class IpAddress(threading.Thread):
         return(nameservers)
 
     def GetIpAddress(self):
-        begin_x = 50; begin_y = 0
-        height = 20; width = 50
+        begin_x = 43; begin_y = 0
+        height = 17; width = 50
         ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -121,9 +120,9 @@ class IpAddress(threading.Thread):
                   ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
                   ip_window.addstr(str(dhcp_domain_name) + '\n')
                 else:
-                  ip_window.addstr('No Domain name from DHCP \n', curses.A_STANDOUT)
+                  ip_window.addstr('No Domain name \n', curses.A_STANDOUT)
                 interface_speed = get_interface_speed(self.interface_name)
-                ip_window.addstr('Local Interface speed: \n', curses.A_STANDOUT)
+                ip_window.addstr('Interface speed: \n', curses.A_STANDOUT)
                 if interface_speed == 'NOT FOUND':
                   ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
                 ip_window.refresh()
@@ -149,7 +148,7 @@ class CdpInformation(threading.Thread):
 
     def GetCDPInformation(self):
         begin_x = 0; begin_y = 8
-        height = 30; width = 25
+        height = 30; width = 30
         cdp_window = curses.newwin(height, width, begin_y, begin_x)
         cdp_packet = get_cdp_packet(self.interface_name)
         while True:
@@ -166,13 +165,11 @@ class CdpInformation(threading.Thread):
                 cdp_window.addstr('Device Name: \n', curses.A_STANDOUT)
                 cdp_window.addstr(cdp_device_name + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_device_name)))
                 cdp_window.addstr('Switchport: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_switchport + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_switchport)))
+                cdp_window.addstr(cdp_switchport + ' | ' + cdp_duplex + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_switchport)))
                 cdp_window.addstr('Switch model: \n', curses.A_STANDOUT)
                 cdp_window.addstr(cdp_platform + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_platform)))
                 cdp_window.addstr('Switch version: \n', curses.A_STANDOUT)
                 cdp_window.addstr(cdp_platform_software + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_platform_software)))
-                cdp_window.addstr('Switchport duplex: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_duplex+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_duplex)))
                 cdp_window.addstr('Switchport VLAN: \n', curses.A_STANDOUT)
                 cdp_window.addstr(str(cdp_vlan)+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_vlan)))
                 cdp_window.addstr('Switch MGMT IP: \n', curses.A_STANDOUT)
@@ -194,17 +191,17 @@ class Iperf(threading.Thread):
         self.start()
 
     def iperf(self):
-        begin_x = 49; begin_y = 19
+        begin_x = 43; begin_y = 18
         height = 8; width = 100
         iperf_win_section = curses.newwin(height, width, begin_y, begin_x)
         while True:
-            try:
-                time.sleep(60)
+            try:           
                 iperf_win_section.addstr('Download speed \n', curses.A_STANDOUT)
                 download_speed = download_test()
                 iperf_win_section.addstr(str(download_speed) + ' Mbps \n')
                 iperf_win_section.refresh()
                 iperf_win_section.clear()
+                time.sleep(30)
             except: 
                 continue
 
