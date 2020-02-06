@@ -125,6 +125,7 @@ class IpAddress(threading.Thread):
                 ip_window.addstr('Interface speed: \n', curses.A_STANDOUT)
                 if interface_speed == 'NOT FOUND':
                   ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
+                ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(3))
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
