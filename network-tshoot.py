@@ -47,7 +47,10 @@ class Ping(threading.Thread):
                 ping_win_section.addstr(2, 1, 'Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
                 ping_win_section.addstr(3, 1, 'Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
                 ping_win_section.addstr(4, 1, 'Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
-                ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
+                if ping_result_json['packet_loss_rate'] > 10:
+                    ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
+                else:
+                    ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])), curses.color_pair(2))
                 if ping_result_json['rtt_avg'] < 60:
                   ping_win_section.addstr(6, 1, self.ok_message, curses.color_pair(2))
                 else:
@@ -172,9 +175,9 @@ class CdpInformation(threading.Thread):
                 cdp_window.addstr('Switch version: \n', curses.A_STANDOUT)
                 cdp_window.addstr(cdp_platform_software + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_platform_software)))
                 cdp_window.addstr('Switchport VLAN: \n', curses.A_STANDOUT)
-                cdp_window.addstr(str(cdp_vlan)+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_vlan)))
-                cdp_window.addstr('Switch MGMT IP: \n', curses.A_STANDOUT)
-                cdp_window.addstr(cdp_management_address+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_management_address)))
+                cdp_window.addstr(str(cdp_vlan) + ' | ' + str(cdp_management_address) + '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_vlan)))
+                #cdp_window.addstr('Switch MGMT IP:' +, curses.A_STANDOUT)
+                #cdp_window.addstr(cdp_management_address+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_management_address)))
                 cdp_window.refresh()
                 cdp_window.clear()
                 time.sleep(10)
@@ -183,7 +186,7 @@ class CdpInformation(threading.Thread):
 
 
 class Iperf(threading.Thread):
-    """ Run a forward and reverse Iperf test towards a target """
+    """ Run a reverse Iperf test towards a target """
 
     def __init__(self):
         super(Iperf, self).__init__()
@@ -195,7 +198,7 @@ class Iperf(threading.Thread):
         begin_x = 43; begin_y = 18
         height = 8; width = 100
         iperf_win_section = curses.newwin(height, width, begin_y, begin_x)
-        while True:
+        while True and perf_test_enabled():
             try:           
                 iperf_win_section.addstr('Download speed \n', curses.A_STANDOUT)
                 download_speed = download_test()
@@ -203,9 +206,8 @@ class Iperf(threading.Thread):
                 iperf_win_section.refresh()
                 iperf_win_section.clear()
                 time.sleep(30)
-            except: 
+            except:
                 continue
-
 
 
 def run(stdscr):
