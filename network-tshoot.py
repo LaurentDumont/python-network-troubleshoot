@@ -43,18 +43,18 @@ class Ping(threading.Thread):
                 transmitter.count = self.ping_count
                 ping_result = transmitter.ping()
                 ping_result_json = json.loads(json.dumps(ping_parser.parse(ping_result).as_dict()))
-                ping_win_section.addstr(1, 1, 'Ping : {}: \n'.format(self.target), curses.A_STANDOUT)
-                ping_win_section.addstr(2, 1, 'Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
-                ping_win_section.addstr(3, 1, 'Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
-                ping_win_section.addstr(4, 1, 'Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
+                ping_win_section.addstr('Ping : {}: \n'.format(self.target), curses.A_STANDOUT)
+                ping_win_section.addstr('Round Trip Time Minimum is : {} ms\n'.format(str(ping_result_json['rtt_min'])))
+                ping_win_section.addstr('Round Trip Time Maximum is : {} ms\n'.format(str(ping_result_json['rtt_max'])))
+                ping_win_section.addstr('Round Trip Time Average is : {} ms\n'.format(str(ping_result_json['rtt_avg'])))
                 if ping_result_json['packet_loss_rate'] > 10:
-                    ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
+                    ping_win_section.addstr('Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])))
                 else:
-                    ping_win_section.addstr(5, 1, 'Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])), curses.color_pair(2))
+                    ping_win_section.addstr('Average packet loss : {} \n'.format(str(ping_result_json['packet_loss_rate'])), curses.color_pair(2))
                 if ping_result_json['rtt_avg'] < 60:
-                  ping_win_section.addstr(6, 1, self.ok_message, curses.color_pair(2))
+                  ping_win_section.addstr(self.ok_message, curses.color_pair(2))
                 else:
-                  ping_win_section.addstr(6, 1, self.notok_message, curses.color_pair(1))
+                  ping_win_section.addstr(self.notok_message, curses.color_pair(1))
                 ping_win_section.refresh()
                 ping_win_section.clear()
                 time.sleep(2)
@@ -71,18 +71,9 @@ class IpAddress(threading.Thread):
         self.interface_name = interface_name
         self.start()
 
-    def GetDnsServers(self):
-        nameservers = []
-        with open("/etc/resolv.conf") as dns_config_file:
-            for line in dns_config_file:
-                if "nameserver" in line:
-                    dns_server = line.split()
-                    nameservers.append(dns_server[1])
-        return(nameservers)
-
     def GetIpAddress(self):
         begin_x = 43; begin_y = 0
-        height = 17; width = 50
+        height = 30; width = 50
         ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
             try:
@@ -107,11 +98,12 @@ class IpAddress(threading.Thread):
                             continue
                         def_gw = socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
                 ip_window.addstr('{}\n'.format(def_gw))
+                dhcp_offer = get_dhcp_offer(self.interface_name)
+                #DNS Servers
                 ip_window.addstr('DNS Servers: \n', curses.A_STANDOUT)
-                dns_servers = IpAddress.GetDnsServers(self)
+                dns_servers = parse_dns_servers(dhcp_offer)
                 for server in dns_servers:
                     ip_window.addstr('{}\n'.format(server))
-                dhcp_offer = get_dhcp_offer(self.interface_name)
                 lease_time = parse_lease_time(dhcp_offer)
                 dhcp_server_ip = parse_dhcp_server_ip(dhcp_offer)
                 dhcp_domain_name = parse_dhcp_domain_name(dhcp_offer)
@@ -119,16 +111,16 @@ class IpAddress(threading.Thread):
                 ip_window.addstr(str(lease_time) + ' Minutes\n')
                 ip_window.addstr('DHCP Server IP: \n', curses.A_STANDOUT)
                 ip_window.addstr(str(dhcp_server_ip) + '\n')
-                if dhcp_domain_name != None:
-                  ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
-                  ip_window.addstr(str(dhcp_domain_name) + '\n')
-                else:
-                  ip_window.addstr('No Domain name \n', curses.A_STANDOUT)
-                interface_speed = get_interface_speed(self.interface_name)
-                ip_window.addstr('Interface speed: \n', curses.A_STANDOUT)
-                if interface_speed == 'NOT FOUND':
-                  ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
-                ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(3))
+                #if dhcp_domain_name != None:
+                #  ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
+                #  ip_window.addstr(str(dhcp_domain_name) + '\n')
+                #else:
+                #  ip_window.addstr('No Domain name \n', curses.A_STANDOUT)
+                #interface_speed = get_interface_speed(self.interface_name)
+                #ip_window.addstr('Interface speed: \n', curses.A_STANDOUT)
+                #if interface_speed == 'NOT FOUND':
+                #  ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
+                #ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(3))
                 ip_window.refresh()
                 ip_window.clear()
                 time.sleep(10)
@@ -180,7 +172,7 @@ class CdpInformation(threading.Thread):
                 #cdp_window.addstr(cdp_management_address+ '\n', curses.color_pair(CdpInformation.get_color_highlight(self, cdp_management_address)))
                 cdp_window.refresh()
                 cdp_window.clear()
-                time.sleep(10)
+                time.sleep(300)
             except:
                 continue
 
@@ -222,7 +214,7 @@ def run(stdscr):
     Ping()
     IpAddress(interface_name)
     CdpInformation(interface_name)
-    Iperf()
+    #Iperf()
 
     # End with any key
 

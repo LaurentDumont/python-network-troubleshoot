@@ -3,7 +3,7 @@ from scapy.all import get_if_hwaddr, conf, Ether, IP, UDP, TCP, BOOTP, DHCP, Ran
 conf.checkIPaddr=False
 
 # configuration
-interface = 'eno1'
+interface = 'wlp3s0'
 localmac = get_if_hwaddr(interface)
 
 # craft DHCP DISCOVER
@@ -11,3 +11,6 @@ dhcp_discover = Ether(src=localmac, dst='ff:ff:ff:ff:ff:ff')/IP(src='0.0.0.0', d
 
 # send discover, wait for reply
 dhcp_offer = srp1(dhcp_discover,iface=interface)
+dns = dhcp_offer[Ether][DHCP].options
+for element in dns:
+  print(element)

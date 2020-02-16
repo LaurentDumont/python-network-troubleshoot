@@ -4,6 +4,7 @@
 
 ### How to
 - Install the dependencies - I assume you have Python3 installed.
+- `sudo apt-get install iperf3 tcpdump`
 - `pip3 install -r requirements.txt`
 - `sudo python3 network-tshoot.py $INTERFACE_NAME_HERE`
 - `sudo python3 network-tshoot.py wlp3s0`
