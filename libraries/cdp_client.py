@@ -8,7 +8,7 @@ def check_cdp_packet(cdp_packet):
       return True
 
 def get_cdp_packet(interface_name):
-    cdp_packet = sniff(iface=interface_name, count=1, filter='ether dst 01:00:0c:cc:cc:cc', store=1, timeout=5)
+    cdp_packet = sniff(iface=interface_name, count=1, filter='ether dst 01:00:0c:cc:cc:cc', store=1, timeout=120)
     return cdp_packet
 
 

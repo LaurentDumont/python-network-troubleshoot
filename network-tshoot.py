@@ -76,56 +76,51 @@ class IpAddress(threading.Thread):
         height = 30; width = 50
         ip_window = curses.newwin(height, width, begin_y, begin_x)
         while True:
-            try:
-                #Internal IP Address
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("8.8.8.8", 80))
-                current_internal_ip  = s.getsockname()[0]
-                ip_window.addstr('Internal IP :\n', curses.A_STANDOUT)
-                ip_window.addstr('{}\n'.format(current_internal_ip))
-                #External IP Address
-                public_ip_data = requests.get('https://api.ipify.org?format=json')
-                public_ip_json = json.loads(public_ip_data.text)
-                public_ip_only = public_ip_json['ip']
-                ip_window.addstr('Public IP address: \n', curses.A_STANDOUT)
-                ip_window.addstr('{}\n'.format(public_ip_only))
-                ip_window.addstr('Default Gateway: \n', curses.A_STANDOUT)
-                #Default gateway
-                with open("/proc/net/route") as fh:
-                    for line in fh:
-                        fields = line.strip().split()
-                        if fields[1] != '00000000' or not int(fields[3], 16) & 2:
-                            continue
-                        def_gw = socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
-                ip_window.addstr('{}\n'.format(def_gw))
-                dhcp_offer = get_dhcp_offer(self.interface_name)
-                #DNS Servers
-                ip_window.addstr('DNS Servers: \n', curses.A_STANDOUT)
-                dns_servers = parse_dns_servers(dhcp_offer)
-                for server in dns_servers:
-                    ip_window.addstr('{}\n'.format(server))
-                lease_time = parse_lease_time(dhcp_offer)
-                dhcp_server_ip = parse_dhcp_server_ip(dhcp_offer)
-                dhcp_domain_name = parse_dhcp_domain_name(dhcp_offer)
-                ip_window.addstr('DHCP lease time: \n', curses.A_STANDOUT)
-                ip_window.addstr(str(lease_time) + ' Minutes\n')
-                ip_window.addstr('DHCP Server IP: \n', curses.A_STANDOUT)
-                ip_window.addstr(str(dhcp_server_ip) + '\n')
-                #if dhcp_domain_name != None:
-                #  ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
-                #  ip_window.addstr(str(dhcp_domain_name) + '\n')
-                #else:
-                #  ip_window.addstr('No Domain name \n', curses.A_STANDOUT)
-                #interface_speed = get_interface_speed(self.interface_name)
-                #ip_window.addstr('Interface speed: \n', curses.A_STANDOUT)
-                #if interface_speed == 'NOT FOUND':
-                #  ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
-                #ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(3))
-                ip_window.refresh()
-                ip_window.clear()
-                time.sleep(10)
-            except:
-                continue
+            #Internal IP address
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("google.ca", 80))
+            current_internal_ip  = s.getsockname()[0]
+            ip_window.addstr('Internal IP: \n', curses.A_STANDOUT)
+            ip_window.addstr('{}\n'.format(str(current_internal_ip)))
+            #External IP address
+            public_ip_data = requests.get('https://api.ipify.org?format=json')
+            public_ip_json = json.loads(public_ip_data.text)
+            public_ip_only = public_ip_json['ip']
+            ip_window.addstr('Public IP address: \n', curses.A_STANDOUT)
+            ip_window.addstr('{}\n'.format(public_ip_only))
+            ip_window.addstr('Default Gateway: \n', curses.A_STANDOUT)
+            #Default gateway
+            with open("/proc/net/route") as fh:
+                for line in fh:
+                    fields = line.strip().split()
+                    if fields[1] != '00000000' or not int(fields[3], 16) & 2:
+                        continue
+                    def_gw = socket.inet_ntoa(struct.pack("<L", int(fields[2], 16)))
+            ip_window.addstr('{}\n'.format(def_gw))
+            dhcp_offer = get_dhcp_offer(self.interface_name)
+            dhcp_options = parse_dhcp_options(dhcp_offer)
+            #DNS Servers
+            ip_window.addstr('DNS Servers: \n', curses.A_STANDOUT)
+            for server in dhcp_options['name_server']:
+                ip_window.addstr('{}\n'.format(server))
+            lease_time = dhcp_options['lease_time']
+            dhcp_server_ip = dhcp_options['server_id']
+            dhcp_domain_name = dhcp_options['domain']
+            ip_window.addstr('DHCP lease time: \n', curses.A_STANDOUT)
+            ip_window.addstr(str(lease_time) + ' Minutes\n')
+            ip_window.addstr('DHCP Server IP: \n', curses.A_STANDOUT)
+            ip_window.addstr(str(dhcp_server_ip) + '\n')
+            ip_window.addstr('DHCP Domain name: \n', curses.A_STANDOUT)
+            ip_window.addstr(str(dhcp_domain_name) + '\n')
+            #interface_speed = get_interface_speed(self.interface_name)
+            #ip_window.addstr('Interface speed: \n', curses.A_STANDOUT)
+            #if interface_speed == 'NOT FOUND':
+            #  ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(1))
+            #ip_window.addstr(str(interface_speed) + '\n', curses.color_pair(3))
+            ip_window.refresh()
+            ip_window.clear()
+            time.sleep(10)
+
 
 
 class CdpInformation(threading.Thread):
@@ -214,7 +209,7 @@ def run(stdscr):
     Ping()
     IpAddress(interface_name)
     CdpInformation(interface_name)
-    #Iperf()
+    Iperf()
 
     # End with any key
 

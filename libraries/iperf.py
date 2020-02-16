@@ -14,6 +14,7 @@ def convert_bits(value):
     return int(value)
 
 def perf_test_enabled():
+    pi_model = 'unknown'
     # Only the Rasp Pi 4 Models can do an iPerf test with good results. Pi 2/3 will not run the test.
     try:
         with open("/proc/cpuinfo") as search:

@@ -23,47 +23,17 @@ def parse_dhcp_options(dhcp_offer):
     }
     
     for option in dhcp_offer[DHCP].options:
-      if option[0] in dhcp_options_dict:
-        if option[0] == 'name_server':
-          #Skip the first element of the list which is 'name_server' - we just want to IP addresses of the name servers.
-          for element in option[1:]:
-            dhcp_options_dict['name_server'].append(element)
-          dhcp_options_dict['name_server'] = list_dns_servers
-        if option[0] == 'domain':
-          dhcp_options_dict['domain'] = option[1].decode('utf-8')
-        else:
-          dhcp_options_dict[option[0]] = option[1]
-    
-        return parsed_dhcp_options
-
-
-def parse_dhcp_server_ip(dhcp_offer):
-    dhcp_server_ip = dhcp_offer[Ether][DHCP].options[1][1]
-    return dhcp_server_ip
-
-
-def parse_lease_time(dhcp_offer):
-    lease_time = dhcp_offer[Ether][DHCP].options[2][1]
-    #DHCP lease is in seconds. Return the value in minutes.
-    lease_time = lease_time/60
-    return lease_time
-
-
-def parse_dhcp_domain_name(dhcp_offer):
-    try:
-      domain_name = dhcp_offer[Ether][DHCP].options[8][1].decode("utf-8")
-      return domain_name
-    except:
-      return None
-
-
-def parse_dns_servers(dhcp_offer):
-    #For brievity, we only get the first two DNS servers specified. Up to 4 can be sent by the DHCP server.
-    try:
-      dns = dhcp_offer[Ether][DHCP].options[5]
-      dns_servers = []
-      dns_servers.extend([dns[1], dns[2]])
-      return dns_servers
-    except:
-      return "NOT FOUND"
-
+      if option[0] == 'name_server':
+        #Skip the first element of the list which is 'name_server' - we just want to IP addresses of the name servers.
+        for element in option[1:]:
+          dhcp_options_dict['name_server'].append(element)
+        continue
+      if option[0] == 'domain':
+        dhcp_options_dict['domain'] = option[1].decode('utf-8')
+        continue
+      if option[0] == 'lease_time':
+        dhcp_options_dict['lease_time'] = str(int(option[1])/60)
+        continue
+      dhcp_options_dict[option[0]] = option[1]
+        
+    return dhcp_options_dict
