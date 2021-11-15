@@ -6,7 +6,7 @@ Logbook==1.4.3
 mbstrdecoder==0.8.0
 netifaces==0.10.9
 pingparsing==0.16.0
-pip==18.1
+pip==21.1
 #Doesnt seem to work 100% of the time...
 #pkg-resources==0.0.0
 pyparsing==2.4.0
